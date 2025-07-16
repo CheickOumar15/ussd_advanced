@@ -2,22 +2,15 @@ group 'com.phan_tech.ussd_advanced'
 version '1.0-SNAPSHOT'
 
 buildscript {
-    ext.kotlin_version = '1.6.10'
+    ext.kotlin_version = '1.8.22' // ✅ Plus récent et compatible AGP 8+
     repositories {
         google()
         mavenCentral()
     }
 
     dependencies {
-        classpath 'com.android.tools.build:gradle:4.1.0'
+        classpath 'com.android.tools.build:gradle:8.2.2' // ✅ Dernière version stable AGP
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-    }
-}
-
-rootProject.allprojects {
-    repositories {
-        google()
-        mavenCentral()
     }
 }
 
@@ -25,7 +18,12 @@ apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 
 android {
-    compileSdkVersion 31
+    namespace 'com.phan_tech.ussd_advanced' // ✅ Obligatoire avec AGP 8+
+    compileSdk = 34 // ✅ Compatible avec Flutter récent
+
+    defaultConfig {
+        minSdk = 21 // ⚠️ 16 est trop bas pour certaines fonctions (USSD API SDK 26+)
+    }
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
@@ -39,12 +37,8 @@ android {
     sourceSets {
         main.java.srcDirs += 'src/main/kotlin'
     }
-
-    defaultConfig {
-        minSdkVersion 16
-    }
 }
 
 dependencies {
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
 }

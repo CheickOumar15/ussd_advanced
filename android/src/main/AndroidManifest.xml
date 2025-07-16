@@ -1,8 +1,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-  package="com.phan_tech.ussd_advanced">
+    package="com.phan_tech.ussd_advanced">
 
+    <!-- Permissions nécessaires -->
     <uses-permission android:name="android.permission.CALL_PHONE" />
-    <uses-permission android:name="android.Manifest.permission.CALL_PHONE" />
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
-    <uses-permission android:name="android.Manifest.permission.READ_PHONE_STATE" />
+
 </manifest>

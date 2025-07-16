@@ -58,6 +58,7 @@ class UssdAdvancedPlugin: FlutterPlugin, MethodCallHandler, ActivityAware, Basic
 
   override fun onAttachedToActivity(binding: ActivityPluginBinding) {
     activity = binding.activity
+    setListener()
   }
 
   override fun onDetachedFromActivity() {
@@ -69,8 +70,10 @@ class UssdAdvancedPlugin: FlutterPlugin, MethodCallHandler, ActivityAware, Basic
   }
 
   override fun onReattachedToActivityForConfigChanges(binding: ActivityPluginBinding) {
-    senderActivity = binding.activity
+    activity = binding.activity
+    setListener()
   }
+
 
   private fun setListener(){
     basicMessageChannel.setMessageHandler(this)
@@ -78,17 +81,22 @@ class UssdAdvancedPlugin: FlutterPlugin, MethodCallHandler, ActivityAware, Basic
 
   override fun onMessage(message: String?, reply: BasicMessageChannel.Reply<String?>) {
     if(message != null){
-      USSDController.send2(message, event!!){
-        event = AccessibilityEvent.obtain(it)
-        try {
-          if(it.text.isNotEmpty()) {
-            reply.reply(it.text.first().toString())
-          }else{
-            reply.reply(null)
-          }
-        } catch (e: Exception){}
-
-      }
+      if (event != null) {
+        USSDController.send2(message, event!!) {
+            event = AccessibilityEvent.obtain(it)
+            try {
+                if (it.text.isNotEmpty()) {
+                    reply.reply(it.text.first().toString())
+                } else {
+                    reply.reply(null)
+                }
+            } catch (e: Exception) {
+                reply.reply(null)
+            }
+        }
+    } else {
+        reply.reply(null)
+    }
     }
   }
 
@@ -190,27 +198,26 @@ class UssdAdvancedPlugin: FlutterPlugin, MethodCallHandler, ActivityAware, Basic
                 )
     }
 
-    private fun requestPermissions(){
-        if(!isAccessibilityServiceEnabled(this.context!!)) {
-            val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
-            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
-            this.context!!.startActivity(intent)
-
-        }
-
-        if (ContextCompat.checkSelfPermission(context!!, android.Manifest.permission.CALL_PHONE) != PackageManager.PERMISSION_GRANTED) {
-            if (!ActivityCompat.shouldShowRequestPermissionRationale(activity!!, android.Manifest.permission.CALL_PHONE)) {
-                ActivityCompat.requestPermissions(activity!!, arrayOf(android.Manifest.permission.CALL_PHONE), 2)
-            }
-        }
-
-        if (ContextCompat.checkSelfPermission(this.context!!, android.Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
-            if (!ActivityCompat.shouldShowRequestPermissionRationale(activity!!, android.Manifest.permission.READ_PHONE_STATE)) {
-                ActivityCompat.requestPermissions(activity!!, arrayOf(android.Manifest.permission.READ_PHONE_STATE), 2)
-            }
-        }
-
-    }
+    private fun requestPermissions() {
+      val permissions = arrayOf(
+          android.Manifest.permission.CALL_PHONE,
+          android.Manifest.permission.READ_PHONE_STATE
+      )
+      val missing = permissions.filter {
+          ContextCompat.checkSelfPermission(context!!, it) != PackageManager.PERMISSION_GRANTED
+      }
+  
+      if (missing.isNotEmpty()) {
+          ActivityCompat.requestPermissions(activity!!, missing.toTypedArray(), 2)
+      }
+  
+      if (!isAccessibilityServiceEnabled(context!!)) {
+          val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
+          intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+          context!!.startActivity(intent)
+      }
+  }
+  
 
   override fun onDetachedFromEngine(@NonNull binding: FlutterPlugin.FlutterPluginBinding) {
     channel.setMethodCallHandler(null)
